@@ -1,5 +1,5 @@
 # Britney Cinnamon
-Britney Cinnamon, um despositivo IOT embutido no interruptor de lâmpadas.
+Britney Cinnamon, um dispositivo IOT embutido no interruptor de lâmpadas.
 
 
 [english version here](README.md)
