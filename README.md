@@ -1,6 +1,13 @@
 # Britney Cinnamon
 Britney Cinnamon, an IOT device embedded in the light switch.
 
+
+[versão em portguês aqui](README-pt.md)
+
+## Idea
+
+Check out [idea PDF](idea.pdf)
+
 ## Features
 
 - Control over light switchs
@@ -17,7 +24,7 @@ Britney Cinnamon, an IOT device embedded in the light switch.
 
 ## Credits
 
-[Hanashiro]()
+[Hanashiro](https://github.com/Hanashiro2001)
 
 
 [Felipe Beserra](https://github.com/Beserrovsky)
