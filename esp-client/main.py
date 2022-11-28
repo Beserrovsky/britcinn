@@ -6,6 +6,12 @@ mqtt_server = '3.124.50.83' # HiveMQ Broker
 
 pub_prefix = 'britcinn'
 
+RELAY_PIN = 
+SWITCH_PIN = 
+SERVO_PIN = 
+DHT11_PIN = 
+
+
 #########
 
 client_id = ubinascii.hexlify(machine.unique_id())
@@ -78,8 +84,9 @@ def update(ldr, temp, hum):
 
 
 def main():
-  components = C
+  components = Components(RELAY_PIN, SWITCH_PIN, SERVO_PIN, DHT11_PIN)
   while True:
+    components.routine()
 
 
 start()
