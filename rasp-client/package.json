@@ -17,6 +17,8 @@
   },
   "homepage": "https://github.com/Beserrovsky/britcinn#readme",
   "dependencies": {
-    "@picovoice/picovoice-node": "^2.1.8"
+    "@picovoice/picovoice-node": "^2.1.8",
+    "async-mqtt": "^2.6.3",
+    "mongodb": "^4.12.1"
   }
 }
