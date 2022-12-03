@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/Beserrovsky/britcinn/issues"
   },
-  "homepage": "https://github.com/Beserrovsky/britcinn#readme"
+  "homepage": "https://github.com/Beserrovsky/britcinn#readme",
+  "dependencies": {
+    "@picovoice/picovoice-node": "^2.1.8"
+  }
 }
