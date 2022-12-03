@@ -1,0 +1,19 @@
+{
+  "name": "britcinn-rasp",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Beserrovsky/britcinn.git"
+  },
+  "author": "@Beserrovsky and @Hanashiro2001",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Beserrovsky/britcinn/issues"
+  },
+  "homepage": "https://github.com/Beserrovsky/britcinn#readme"
+}
