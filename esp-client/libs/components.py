@@ -1,6 +1,6 @@
 import dht, time
 
-import * from machine
+from machine import *
 
 class Relay:
 
@@ -18,15 +18,13 @@ class Relay:
     
     self.relay.value(self.relay_state)
     if (verbose):
-      print("Relay state:")
-      print(self.relay_state)
+      print(f"Relay state: {self.relay_state}")
 
     return self.relay_state
   
   def getRelayState(self, verbose = False):
     if (verbose):
-      print("Relay state:")
-      print(self.relay_state)
+      print(f"Relay state: {self.relay_state}")
 
     return self.relay_state
 
@@ -48,6 +46,12 @@ class Switch:
       return True
     else:
       return False
+  
+  def getSwitchState(self, verbose = False):
+    if (verbose):
+      print(f"Switch state: {self.switch_state}")
+
+    return self.switch_state
 
 class Servo:
 
@@ -55,34 +59,34 @@ class Servo:
   servo_angle = 0
 
   def __init__(self, servo_pin):
-    self.servo = PWM(servo_pin, freq = 50, duty_u16 = 0, 1500000)
+    self.servo = PWM(Pin(servo_pin))
+    self.servo.freq(50)
+    self.servo.duty(0)
   
   def setServoAngle(self, angle, verbose = False):
     self.servo_angle = angle
     self.servo.duty_u16(angleToPWM(self.servo_angle))
     if (verbose):
-      print("Servo angle altered to: ")
-      print(self.servo_angle)
+      print(f"Servo angle altered to: {self.servo_angle}")
     
     return self.servo_angle
   
   def getServoAngle(self, verbose = False):
     if (verbose):
-      print("Servo angle altered to: ")
-      print(self.servo_angle)
+      print(f"Servo angle: {self.servo_angle}")
     
     return self.servo_angle
 
   def angleToPWM(value):
     # Figure out how 'wide' each range is
     leftSpan = 180 - 0
-    rightSpan = 65535 - 0
+    rightSpan = 115 - 40
 
     # Convert the left range into a 0-1 range (float)
     valueScaled = float(value - 0) / float(leftSpan)
 
     # Convert the 0-1 range into a value in the right range.
-    return 0 + (valueScaled * rightSpan)
+    return 40 + (valueScaled * rightSpan)
 
 class DHT11:
   
@@ -91,7 +95,7 @@ class DHT11:
   hum = 0
 
   def __init__(self, dht11_pin):
-    self.dht11 = dht.DHT11(Pin(dht_pin))
+    self.dht11 = dht.DHT11(Pin(dht11_pin))
     self.getDHT()
 
   def getDHT(self, verbose = False):
@@ -99,10 +103,9 @@ class DHT11:
     self.temp = self.dht11.temperature()
     self.hum = self.dht11.humidity()
     if (verbose):
-      print("Temperature: ")
-      print(self.temp)
-      print("Humidity: ")
-      print(self.hum)
+      print(f"Temperature: {self.temp}")
+      print(f"Humidity: {self.hum}")
+
     return self.temp, self.hum
 
 class Components:
@@ -118,8 +121,6 @@ class Components:
     self.servo = Servo(servo_pin)
     self.dht11 = DHT11(dht11_pin)
 
-  def routine(self, verbose):
-    self.dht11.getDHT(verbose)
-
+  def routine(self, verbose = False):
     if (self.switch.getSwitchChange(verbose)):
       self.relay.setRelay(verbose)
