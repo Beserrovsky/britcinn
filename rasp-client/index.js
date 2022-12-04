@@ -9,7 +9,7 @@ const { Rhino } = require("@picovoice/rhino-node");
 const PvRecorder = require("@picovoice/pvrecorder-node");
 
 // Picovoice stuff
-const accessKey = ""
+const accessKey = process.env.ACCESS_KEY;
 
 // Topic for db warnings
 const WRN_TOPIC = 'BRITCINN_db';
@@ -133,6 +133,8 @@ async function main() {
 
     // Closes website
     server.close();
+
+    running = false;
     
     console.log("\nTill next time, see ya!!!");
   });
@@ -159,6 +161,11 @@ async function main() {
       }
     }
   }
+
+  recorder.stop();
+  recorder.release();
+  porcupine.release();
+  handle.release();
 }
 
 main();
