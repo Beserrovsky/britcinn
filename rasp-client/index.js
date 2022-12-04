@@ -23,7 +23,7 @@ const db_uri =
 
 // Broker URI
 const mqtt_uri = 
-  'mqtt://broker.hivemq.com';
+  'mqtt://broker.emqx.io';
 
 // Subscriptions
 const SUBS = {'BRITCINN_ldr': {qos: 0}, 'BRITCINN_dht': {qos: 0}, 'BRITCINN_client': {qos: 0}};
