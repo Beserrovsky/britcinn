@@ -1,16 +1,15 @@
-const { AudioBuffer } = require('web-audio-api')
-const Microphone = require('node-microphone')
-
 const { MongoClient } = require('mongodb');
 const mqtt = require('async-mqtt');
-const Picovoice = require("@picovoice/picovoice-node");
+
 const express = require('express');
 const bodyParser= require('body-parser');
 
+const { Porcupine, BuiltinKeyword } = require("@picovoice/porcupine-node");
+const { Rhino } = require("@picovoice/rhino-node");
+const PvRecorder = require("@picovoice/pvrecorder-node");
+
 // Picovoice stuff
-const accessKey = "${ACCESS_KEY}"
-const keywordArgument = "./key.ppn"
-const contextPath = "./context.rhn"
+const accessKey = ""
 
 // Topic for db warnings
 const WRN_TOPIC = 'BRITCINN_db';
@@ -77,31 +76,6 @@ const saveDoc = async (doc, collection, dbo) => {
 
 const db_client = new MongoClient(db_uri);
 
-// Picovoice
-
-const keywordCallback = function (keyword) {
-  console.log(`Wake word detected`);
-};
-
-
-const inferenceCallback = function (inference) {
-  console.log("Inference:");
-  console.log(JSON.stringify(inference, null, 4));
-};
-
-const picovoice = new Picovoice(
-  accessKey,
-  keywordArgument,
-  keywordCallback,
-  contextPath,
-  inferenceCallback
-);
-
-function getNextAudioFrame() {
-  // TODO: Get audio
-  return audioFrame;
-}
-
 async function main() {
   
   // Connect to MongoDB
@@ -123,40 +97,30 @@ async function main() {
 
   app.use(bodyParser.urlencoded({ extended: true }));
 
-  app.listen(3000, function() {
+  const server = app.listen(3000, function() {
     console.log('Express: listening on 3000')
   })
 
   for (const [key, value] of Object.entries(SUBS)) {
     console.log(`API endpoint created on: ${key}`);
     app.get(`/${key}`, async (req, res) => {
-      let results = await db.collection(key).find().toArray();
+      let results = await dbo.collection(key).find().toArray();
       res.send(results);
     })
   }
 
-  const rate = 44100
-  const channels = 2 // Number of source channels
+  const porcupine = new Porcupine(
+    accessKey,
+    [BuiltinKeyword.PORCUPINE],
+    [0.5]
+  );
 
-  const microphone = new Microphone({ // These parameters result to the arecord command above
-    channels,
-    rate,
-    device: 'hw:1,0',
-    bitwidth: 16,
-    endian: 'little',
-    encoding: 'signed-integer'
-  })
+  const handle = new Rhino(accessKey, `${__dirname}/picovoice/context.rhn`);
 
-  const audioBuffer = new AudioBuffer(
-    1, // 1 channel
-    30 * rate, // 30 seconds buffer
-    rate
-  )
-  const chunks = []
-  const data = audioBuffer.getChannelData(0) // This is the Float32Array
-  const stream = microphone.startRecording()
+  const recorder = new PvRecorder(-1, porcupine.frameLength);
+  recorder.start();
 
-  stream.on('data', chunk => {process.process(chunk);})
+  let running = true;
 
   // Defines exit routine
   process.on('SIGINT', async () => {
@@ -167,14 +131,34 @@ async function main() {
     // Closes conn to MongoDB
     await db_client.close();
 
-    // Closes picovoice
-    picovoice.release()
-
-    // Stop microphone
-    microphone.stopRecording()
-
+    // Closes website
+    server.close();
+    
     console.log("\nTill next time, see ya!!!");
   });
+
+  let index = -1;
+  let isFinalized = false;
+
+  while (running) {
+    const frames = await recorder.read();
+
+    if (index == -1) {
+      index = porcupine.process(frames);
+      if (index !== -1 ) { 
+        console.log("Wake Word detected!"); 
+        isFinalized = false;
+      }
+    } else {
+      isFinalized = handle.process(frames);
+      if (isFinalized) {
+        const inference = handle.getInference();
+        console.log(inference);
+        index = -1;
+        isFinalized = true;
+      }
+    }
+  }
 }
 
 main();
