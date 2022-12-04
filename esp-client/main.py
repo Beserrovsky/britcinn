@@ -61,10 +61,12 @@ def sub_cb(topic, msg):
     changeServo(msg)
 
 
-def changeLight(msg): # TODO
+def changeLight(msg):
+  print(ujson.loads(msg))
   pass
 
-def changeServo(msg): # TODO
+def changeServo(msg):
+  print(ujson.loads(msg))
   pass
 
 # ! IMPORTANT CALLS !
@@ -124,7 +126,7 @@ def updateMQTT(verbose = False):
 
 components = Components(RELAY_PIN, SWITCH_PIN, SERVO_PIN, DHT11_PIN)
 
-MQTT_FREQUENCY = 2 # seconds between updates
+MQTT_FREQUENCY = 5 # seconds between updates
 
 def main():
   while True:

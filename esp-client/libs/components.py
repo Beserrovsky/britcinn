@@ -123,4 +123,4 @@ class Components:
 
   def routine(self, verbose = False):
     if (self.switch.getSwitchChange(verbose)):
-      self.relay.setRelay(verbose)
+      self.relay.setRelayState(None, verbose)
