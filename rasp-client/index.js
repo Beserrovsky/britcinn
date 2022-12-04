@@ -111,7 +111,7 @@ async function main() {
 
   const porcupine = new Porcupine(
     accessKey,
-    [BuiltinKeyword.PORCUPINE],
+    [`${__dirname}/picovoice/key.ppn`],
     [0.5]
   );
 
