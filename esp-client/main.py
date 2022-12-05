@@ -29,7 +29,7 @@ DHT11_PIN = 23
 client_id = ubinascii.hexlify(machine.unique_id())
 
 def connect(client_id, mqtt_server):
-  print(f'{client_id} connecting to {mqtt_server}')
+  print(f'{str(client_id.decode('utf8', 'strict'))} connecting to {mqtt_server}')
   client = MQTTClient(client_id, mqtt_server)
 
   client.set_last_will( f'{topic_prefix}/{last_will_topic}' , b'0' )
@@ -52,6 +52,8 @@ def subscribe():
 # Subscriptions
 
 def sub_cb(topic, msg):
+  topic = str(topic.decode('utf8', 'strict'))
+  msg = str(msg.decode('utf8', 'strict'))
   print(f't: "{topic}" -> m:"{msg}"')
 
   if (topic == f'{topic_prefix}/{light_topic}'):
@@ -62,11 +64,13 @@ def sub_cb(topic, msg):
 
 
 def changeLight(msg):
-  print(ujson.loads(msg))
+  msg = ujson.loads(msg)
+  components.relay.setRelayState(msg['light'], True)
   pass
 
 def changeServo(msg):
-  print(ujson.loads(msg))
+  msg = ujson.loads(msg)
+  components.relay.setServoAngle(msg['angle'], True)
   pass
 
 # ! IMPORTANT CALLS !
@@ -131,6 +135,7 @@ MQTT_FREQUENCY = 5 # seconds between updates
 def main():
   while True:
     last_time = time.time()
+    tick()
     while ((time.time() - last_time) < MQTT_FREQUENCY):
       components.routine(True)
     updateMQTT(True)
