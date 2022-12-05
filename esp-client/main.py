@@ -27,12 +27,19 @@ DHT11_PIN = 23
 #########
 
 client_id = ubinascii.hexlify(machine.unique_id())
+cli_id = str(client_id.decode('utf8', 'strict'))
 
 def connect(client_id, mqtt_server):
-  print(f'{str(client_id.decode('utf8', 'strict'))} connecting to {mqtt_server}')
+  print(f'{cli_id} connecting to {mqtt_server}')
   client = MQTTClient(client_id, mqtt_server)
 
-  client.set_last_will( f'{topic_prefix}/{last_will_topic}' , b'0' )
+  # Doesn't work at alll, emqx problem?
+  client.set_last_will( f'{topic_prefix}/{last_will_topic}' , str(ujson.dumps( 
+    {
+      'client_id': cli_id,
+      'status': False
+    }
+  )))
   client.set_callback(sub_cb)
 
   client.connect()
@@ -83,6 +90,12 @@ def start():
   try:
     client = connect(client_id, mqtt_server)
     subscribe()
+    client.publish( f'{topic_prefix}/{last_will_topic}' , str(ujson.dumps(
+    {
+      'client_id': cli_id,
+      'status': True
+    }
+    )))
   except OSError as e:
     print(e)
     restart_and_reconnect()
@@ -98,21 +111,23 @@ def tick():
 
 ## Updates sensors data
 def updateMQTT(verbose = False):
-  cli_id = str(client_id.decode('utf8', 'strict'))
 
   relayData = {
+    'client_id': cli_id,
     'light_state': components.relay.getRelayState(verbose)
   }
   client.publish(f'{topic_prefix}/{light_state_topic}', str(ujson.dumps(relayData)))
 
 
   switchData = {
+    'client_id': cli_id,
     'switch_state': components.switch.getSwitchState(verbose)
   }
   client.publish(f'{topic_prefix}/{switch_state_topic}', str(ujson.dumps(switchData)))
 
 
   servoData = {
+    'client_id': cli_id,
     'servo_angle': components.servo.getServoAngle(verbose)
   }
   client.publish(f'{topic_prefix}/{servo_angle_topic}', str(ujson.dumps(servoData)))
@@ -120,6 +135,7 @@ def updateMQTT(verbose = False):
   
   temp, hum = components.dht11.getDHT(verbose)
   dhtData = {
+    'client_id': cli_id,
     'temp': temp,
     'hum': hum
   }
