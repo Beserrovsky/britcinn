@@ -11,11 +11,14 @@ const PvRecorder = require("@picovoice/pvrecorder-node");
 // Picovoice stuff
 const accessKey = process.env.ACCESS_KEY;
 
+// Prefix
+const prefix = 'britcinn';
+
 // Topic for db warnings
-const WRN_TOPIC = 'BRITCINN_db';
+const WRN_TOPIC = 'database';
 
 // Database Name
-const DB_NAME = 'BRITCINN';
+const DB_NAME = 'britcinn';
 
 // Database URI
 const db_uri =
@@ -24,9 +27,6 @@ const db_uri =
 // Broker URI
 const mqtt_uri = 
   'mqtt://broker.emqx.io';
-
-// Subscriptions
-const SUBS = {'BRITCINN_ldr': {qos: 0}, 'BRITCINN_dht': {qos: 0}, 'BRITCINN_client': {qos: 0}};
 
 async function db_conn() {
   try {
@@ -55,7 +55,7 @@ async function mqtt_conn() {
 async function handleMsg(topic, msg, dbo) {
   msg = msg.toString();
 
-  console.log(`Message received on "${topic}": ${msg.toString()}`);
+  // console.log(`Message received on "${topic}": ${msg.toString()}`);
 
   try {
     let doc = JSON.parse(msg);
@@ -69,9 +69,9 @@ async function handleMsg(topic, msg, dbo) {
 const saveDoc = async (doc, collection, dbo) => {
   let col = dbo.collection(collection);
   const result = await col.insertOne(doc);
-  console.log(
-    `A ${collection} document was inserted with the _id: ${result.insertedId}`,
-  );
+  // console.log(
+  //   `A ${collection} document was inserted with the _id: ${result.insertedId}`,
+  // );
 }
 
 const db_client = new MongoClient(db_uri);
@@ -88,26 +88,30 @@ async function main() {
   await client.on('message', (topic, msg) => handleMsg(topic, msg, dbo));
 
   // Subscribes to topics
-  await client.subscribe(SUBS, (err) => err? console.error : null);
+  await client.subscribe(`${prefix}/#`, (err) => err? console.error : null);
 
   // Warning database recording
-  await client.publish(WRN_TOPIC, 'Database recording started!');
+  await client.publish(`${prefix}/${WRN_TOPIC}`, JSON.stringify({
+    alert: 'Database recording started!'
+  }));
   
   const app = express();
 
   app.use(bodyParser.urlencoded({ extended: true }));
 
   const server = app.listen(3000, function() {
-    console.log('Express: listening on 3000')
+    console.log('Express: API listening on 3000')
   })
 
-  for (const [key, value] of Object.entries(SUBS)) {
-    console.log(`API endpoint created on: ${key}`);
-    app.get(`/${key}`, async (req, res) => {
-      let results = await dbo.collection(key).find().toArray();
-      res.send(results);
-    })
-  }
+  // FIXME: Add endpoints foreach collection
+  // for (const [key, value] of Object.entries(SUBS)) {
+  //   console.log(`API endpoint created on: ${key}`);
+  //   app.get(`/${key}`, async (req, res) => {
+  //     let results = await dbo.collection(key).find().toArray();
+  //     res.send(results);
+  //   })
+  // }
+
 
   const porcupine = new Porcupine(
     accessKey,
@@ -142,13 +146,16 @@ async function main() {
   let index = -1;
   let isFinalized = false;
 
+  console.log("\nWaiting for Wake Word"); 
+
   while (running) {
     const frames = await recorder.read();
 
     if (index == -1) {
       index = porcupine.process(frames);
       if (index !== -1 ) { 
-        console.log("Wake Word detected!"); 
+        console.log("Wake Word detected!");
+        console.log("\nWaiting for Intent"); 
         isFinalized = false;
       }
     } else {
@@ -158,6 +165,7 @@ async function main() {
         console.log(inference);
         index = -1;
         isFinalized = true;
+        console.log("\nWaiting for Wake Word"); 
       }
     }
   }
