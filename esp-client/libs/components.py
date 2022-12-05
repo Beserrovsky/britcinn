@@ -35,10 +35,10 @@ class Switch:
 
   def __init__(self, switch_pin):
     self.switch = Pin(switch_pin, Pin.IN, Pin.PULL_DOWN)
-    self.switch_state = self.switch.value()
+    self.switch_state = (self.switch.value() == 1)
   
   def getSwitchChange(self, verbose = False):
-    state = self.switch.value()
+    state = (self.switch.value() == 1)
     if (self.switch_state != state):
       self.switch_state = state
       if (verbose):
@@ -61,13 +61,16 @@ class Servo:
   def __init__(self, servo_pin):
     self.servo = PWM(Pin(servo_pin))
     self.servo.freq(50)
-    self.servo.duty(0)
+    self.servo.duty(40)
   
   def setServoAngle(self, angle, verbose = False):
     self.servo_angle = angle
-    self.servo.duty_u16(angleToPWM(self.servo_angle))
+
+    duty = int(self.translate(self.servo_angle, 0, 180, 40, 115))
+    self.servo.duty(duty)
     if (verbose):
       print(f"Servo angle altered to: {self.servo_angle}")
+      print(f"Angle in duty cicle: {duty}")
     
     return self.servo_angle
   
@@ -77,16 +80,16 @@ class Servo:
     
     return self.servo_angle
 
-  def angleToPWM(value):
+  def translate(self, value, leftMin, leftMax, rightMin, rightMax): # Adam Luchjenbroers's function
     # Figure out how 'wide' each range is
-    leftSpan = 180 - 0
-    rightSpan = 115 - 40
+    leftSpan = leftMax - leftMin
+    rightSpan = rightMax - rightMin
 
     # Convert the left range into a 0-1 range (float)
-    valueScaled = float(value - 0) / float(leftSpan)
+    valueScaled = float(value - leftMin) / float(leftSpan)
 
     # Convert the 0-1 range into a value in the right range.
-    return 40 + (valueScaled * rightSpan)
+    return rightMin + (valueScaled * rightSpan)
 
 class DHT11:
   
@@ -120,6 +123,8 @@ class Components:
     self.switch = Switch(switch_pin)
     self.servo = Servo(servo_pin)
     self.dht11 = DHT11(dht11_pin)
+
+    self.servo.setServoAngle(0)
 
   def routine(self, verbose = False):
     if (self.switch.getSwitchChange(verbose)):

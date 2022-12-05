@@ -70,7 +70,7 @@ def changeLight(msg):
 
 def changeServo(msg):
   msg = ujson.loads(msg)
-  components.relay.setServoAngle(msg['angle'], True)
+  components.servo.setServoAngle(msg['angle'], True)
   pass
 
 # ! IMPORTANT CALLS !
