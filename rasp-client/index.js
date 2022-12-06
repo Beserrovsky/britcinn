@@ -74,6 +74,42 @@ const saveDoc = async (doc, collection, dbo) => {
   // );
 }
 
+const handleInference = (inference, client) => {
+  if (inference.isUnderstood) {
+    switch (inference.intent) {
+      case 'ligueLuz':
+        client.publish(prefix + '/light', JSON.stringify(
+          {
+            light: true
+          }
+        ))
+        break;
+      case 'desligueLuz':
+        client.publish(prefix + '/light', JSON.stringify(
+          {
+            light: false
+          }
+        ))
+        break;
+      case 'trancaPorta':
+        client.publish(prefix + '/servo', JSON.stringify(
+          {
+            angle: 90
+          }
+        ))
+        break;
+      case 'destrancaPorta':
+        client.publish(prefix + '/servo', JSON.stringify(
+          {
+            angle: 0
+          }
+        ))
+        break;
+    }
+  }
+}
+
+
 const db_client = new MongoClient(db_uri);
 
 async function main() {
@@ -119,7 +155,13 @@ async function main() {
     [0.5]
   );
 
-  const handle = new Rhino(accessKey, `${__dirname}/picovoice/context.rhn`);
+  const handle = new Rhino(
+    accessKey, 
+    `${__dirname}/picovoice/britcinn_context_pt_linux_v2_1_0.rhn`,
+    0.5,
+    0.5,
+    false,
+    `${__dirname}/picovoice/rhino_params_pt.pv`);
 
   const recorder = new PvRecorder(-1, porcupine.frameLength);
   recorder.start();
@@ -163,6 +205,7 @@ async function main() {
       if (isFinalized) {
         const inference = handle.getInference();
         console.log(inference);
+        handleInference(inference, client);
         index = -1;
         isFinalized = true;
         console.log("\nWaiting for Wake Word"); 
