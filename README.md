@@ -22,6 +22,13 @@ Check out [idea PDF](idea.pdf)
 - HiveMQ as public broker
 - NodeJS + MongoDB app for storage and API access
 
+## Relevant Links
+
+ - Presentation video: https://youtu.be/LhZvgNEXjJY
+ - Implementation and demonstration video: https://youtu.be/GOQ3h5-p_FI
+ - Driver folder: https://drive.google.com/drive/u/0/folders/1Ou_RRr1SyYoGhryZdT9D95lgfnK7g_yX 
+ - Secondary Repository (web page and app): https://github.com/Beserrovsky/britcinn-website
+
 ## Credits
 
 [Hanashiro](https://github.com/Hanashiro2001)
